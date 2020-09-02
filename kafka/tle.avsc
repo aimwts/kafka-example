@@ -1,0 +1,136 @@
+{
+	"name": "tleVectorList30",
+	"type": "record",
+	"namespace": "ai.swim.sattrack",
+	"fields": [{
+			"name": "timestamp",
+			"type": "string"
+		},
+		{
+            "name": "tleDataset",
+            "type": {
+                "type": "array",
+                "items":{
+                    "name": "Account",
+                    "type": "record",
+                    "fields":[                        
+                        {
+                            "name": "name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "intlDesignator",
+                            "type": "string"
+                        },
+                        {
+                            "name": "catalogNumber",
+                            "type": "int"
+                        },
+                        {
+                            "name": "type",
+                            "type": "string"
+                        },
+                        {
+                            "name": "classificationType",
+                            "type": "string"
+                        },
+                        {
+                            "name": "epoch",
+                            "type": "long"
+                        },
+                        {
+                            "name": "eccentricity",
+                            "type": "float"
+                        },
+                        {
+                            "name": "inclination",
+                            "type": "float"
+                        },
+                        {
+                            "name": "rightAscension",
+                            "type": "float"
+                        },
+                        {
+                            "name": "argPericenter",
+                            "type": "float"
+                        },
+                        {
+                            "name": "meanAnomaly",
+                            "type": "float"
+                        },
+                        {
+                            "name": "meanMotion",
+                            "type": "float"
+                        },
+                        {
+                            "name": "meanMotionDot",
+                            "type": "float"
+                        },
+                        {
+                            "name": "meanMotionDotDot",
+                            "type": "float"
+                        },
+                        {
+                            "name": "bStar",
+                            "type": "float"
+                        },
+                        {
+                            "name": "revolutionsAtEpoch",
+                            "type": "int"
+                        },
+                        {
+                            "name": "elementSetNumber",
+                            "type": "int"
+                        },
+                        {
+                            "name": "ephemerisType",
+                            "type": "int"
+                        },
+                        {
+                            "name": "comment",
+                            "type": "string"
+                        },
+                        {
+                            "name": "originator",
+                            "type": "string"
+                        },
+                        {
+                            "name": "ordinal",
+                            "type": "int"
+                        },
+                        {
+                            "name": "file",
+                            "type": "int"
+                        },
+                        {
+                            "name": "orbitalPeriod",
+                            "type": "float"
+                        },
+                        {
+                            "name": "apogee",
+                            "type": "float"
+                        },
+                        {
+                            "name": "perigee",
+                            "type": "float"
+                        },
+                        {
+                            "name": "latitude",
+                            "type": "double"
+                        },
+                        {
+                            "name": "longitude",
+                            "type": "double"
+                        },
+                        {
+                            "name": "height",
+                            "type": "float"
+                        }
+
+
+                    ]
+                }
+            }
+        }
+	]
+}
