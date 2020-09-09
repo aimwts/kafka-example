@@ -19,7 +19,7 @@ sattrack: @fabric {
         servers: "localhost:9092",
         topic: "fullVectorList",
         schemaUrl: "http://localhost:8081",
-        pollInterval: 30000
+        pollInterval: 15000
       }
     }
   }    

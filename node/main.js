@@ -1,4 +1,5 @@
 require('dotenv').config();
+const moment = require('moment');
 const spacetrack = require("spacetrack");
 const satellite = require('satellite.js');
 const path = require("path");
@@ -8,14 +9,22 @@ const {
     readAVSCAsync,
 } = require("@kafkajs/confluent-schema-registry");
 
-const registry = new SchemaRegistry({ host: "http://localhost:8081" });
+const registry = new SchemaRegistry({ host: process.env.KAFKA_SCHEMA_URL });
 const kafka = new Kafka({
-    brokers: ["localhost:9092"],
-    clientId: "swim-example",
+    brokers: [process.env.KAFKA_BROKER_URL],
+    clientId: process.env.KAFKA_CLIENT_ID,
 });
 
 const producer = kafka.producer();
 let storedSchema = 0;
+const rowsToFetch = process.env.ROWS_TO_FETCH;
+const consecutiveFetches = process.env.CONSECUTIVE_FETCHES;
+
+if(((60/process.env.POLLING_INTERVAL) * process.env.CONSECUTIVE_FETCHES) > 300) {
+    console.error("requests will exceed api limits");
+    console.error(((60/process.env.POLLING_INTERVAL) * process.env.CONSECUTIVE_FETCHES));
+    return;
+}
 
 const getLatestTLEs = () => {
     console.info("get latest satellite vectors");
@@ -24,7 +33,7 @@ const getLatestTLEs = () => {
         password: process.env.SPACETRACK_PASSWORD,
     });
 
-    for(let i=0; i<5; i++) {
+    for(let i=0; i<consecutiveFetches; i++) {
         const queryOptions = (options = {
             controller: "basicspacedata", // defaults to 'basicspacedata'
             action: "query", // defaults to 'query'
@@ -52,8 +61,8 @@ const getLatestTLEs = () => {
                 "-NORAD_CAT_ID", // descending by NORAD_CAT_ID
             ],
     
-            limit: 4000, // optional, but recommended
-            offset: 4000*i, // optional (needs limit to be set, otherwise limit defaults to 100)
+            limit: rowsToFetch, // optional, but recommended
+            offset: rowsToFetch*i, // optional (needs limit to be set, otherwise limit defaults to 100)
     
             // distinct: true // optional (this option causes some hiccups)
         });
@@ -86,6 +95,24 @@ const handleTleResult = (result) => {
 
         // console.info(rowData.name, velocityEci);
 
+        // build track list
+        let satTracks = [];
+        let currDate = moment();
+        for(let i=0; i<=5; i++) {
+            const newDateObj = currDate.add(i*1, 'm');
+            const testGmst = satellite.gstime(newDateObj.toDate());
+            const newPropagation = satellite.sgp4(satrec, testGmst);
+            const nextPositionEci = newPropagation.position;
+            const nextPositionGd = satellite.eciToGeodetic(nextPositionEci, testGmst);
+            satTracks.push({
+                timestamp: newDateObj.valueOf(),
+                lat: satellite.degreesLat(nextPositionGd.latitude),
+                long: satellite.degreesLong(nextPositionGd.longitude)
+            });
+        }
+        // console.info(satTracks);
+    
+
         const satData = {
             name: rowData.name,
             intlDesignator: rowData.intlDesignator,
@@ -115,7 +142,8 @@ const handleTleResult = (result) => {
             perigee: parseFloat(rowData.perigee),
             latitude: satellite.degreesLat(satLatitude),
             longitude: satellite.degreesLong(satLongitude),
-            height: satHeight
+            height: satHeight,
+            tracks: satTracks
         };
 
         // console.info(rowData.tle[1], rowData.tle[2]);
@@ -176,7 +204,7 @@ const mainLoop = () => {
     .then(() => {
         setTimeout(() => {
             mainLoop();            
-        }, process.env.POLLING_INTERVAL_MS);
+        }, (process.env.POLLING_INTERVAL * 60 * 1000));
         
     })
     .catch(async (e) => {

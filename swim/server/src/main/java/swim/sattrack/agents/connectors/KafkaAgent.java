@@ -33,6 +33,7 @@ public abstract class KafkaAgent extends MessageBrokerAgent {
 
     private Consumer<Long, GenericRecord> consumer;
     private Value agentConfig;
+    private boolean isRunning = true;
 
     @SwimLane("recordList")
     public MapLane<Long, Value> recordList = this.<Long, Value>mapLane();
@@ -57,53 +58,79 @@ public abstract class KafkaAgent extends MessageBrokerAgent {
         this.consumer = new KafkaConsumer<>(kafkaProps);
         this.consumer.subscribe(Collections.singletonList(topic));
         
-        runConsumer(this.context, asyncStage());
+        runConsumer();
     }
 
     protected void disconnect() {
         this.consumer.close();
+       
     }
  
     @Override
     public void didStart() {
         System.out.println("[KafkaAgent] didStart");
         this.agentConfig = getProp("config");
+        this.isRunning = true;
         super.didStart();
     }    
 
-    private void runConsumer(AgentContext context, Executor executor) {
+    @Override
+    public void willStop() {
+       
+        this.isRunning = false;
+        super.willStop();
+    }
+
+    private void runConsumer() {
         System.out.println("[KafkaAgent] runConsumer");
-        executor.execute(() -> {
-            final long[] count = {0L};
-            while (true) {
+        // executor.execute(() -> {
+            // final long[] count = {0L};
+            
+            while (this.isRunning) {
                 final ConsumerRecords<Long, GenericRecord> records = this.consumer.poll(this.agentConfig.get("pollInterval").intValue());
-            //   System.out.println("[KafkaAgent] check for records");
-            //   System.out.println(records.count());
+                System.out.println(String.format("[KafkaAgent] check for records %s", records.count()));
                 for (ConsumerRecord<Long, GenericRecord> rec : records) {
 
-                    executor.execute(() -> {
+                    // executor.execute(() -> {
                         records.forEach(record -> {
-                            
-                            final long timestamp = System.currentTimeMillis();
-                            final String genericRecord = rec.value().get("tleDataset").toString();
-                            InputStream targetStream = new ByteArrayInputStream(genericRecord.getBytes());
-                            try {
-                                final Value recordValue = Utf8.read(Json.parser(), targetStream);
-                                this.recordList.put(timestamp, recordValue);
+                            // final String genericRecord = ;
+                            this.handleRecord(rec.value().get("tleDataset").toString());
+                            // final long timestamp = System.currentTimeMillis();
+                            // final String genericRecord = rec.value().get("tleDataset").toString();
+                            // InputStream targetStream = new ByteArrayInputStream(genericRecord.getBytes());
+                            // try {
+                            //     final Value recordValue = Utf8.read(Json.parser(), targetStream);
+                            //     this.recordList.put(timestamp, recordValue);
     
-                            } catch(Exception ex) {
-                                ex.printStackTrace();
-                            }
+                            // } catch(Exception ex) {
+                            //     ex.printStackTrace();
+                            // }
                         });                    
 
                         
 
-                    });
+                    // });
                 }
                 this.consumer.commitAsync();
-                this.processMessages();
+                if(this.recordList.size() > 0) {
+                    this.processMessages();
+                }
+                
             }
-        });
+        // });
+    }
+
+    private void handleRecord(String genericRecord) {
+        final long timestamp = System.currentTimeMillis();
+        // final String genericRecord = record.value().get("tleDataset").toString();
+        InputStream targetStream = new ByteArrayInputStream(genericRecord.getBytes());
+        try {
+            final Value recordValue = Utf8.read(Json.parser(), targetStream);
+            this.recordList.put(timestamp, recordValue);
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     abstract protected void processMessages();

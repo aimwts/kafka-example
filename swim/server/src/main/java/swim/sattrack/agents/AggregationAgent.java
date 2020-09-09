@@ -20,7 +20,7 @@ public class AggregationAgent extends AbstractAgent {
     @SwimLane("addSatellite")
     public CommandLane<Value> addSatellite = this.<Value>commandLane()
         .onCommand((Value newValue) -> {
-          this.satelliteList.put(newValue.get("intlDesignator").stringValue(), newValue);
+          this.satelliteList.put(newValue.get("catalogNumber").stringValue(), newValue);
         });    
 
 }

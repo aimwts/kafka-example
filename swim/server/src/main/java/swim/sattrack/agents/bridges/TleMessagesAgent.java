@@ -9,23 +9,27 @@ import swim.structure.Value;
 import swim.uri.Uri;
 
 public class TleMessagesAgent extends KafkaAgent {
+    Long firstKey;
+    Value vectorList;
+    String catalogNumber;
+    String newPath;
 
     @Override
     protected void processMessages() {
-        System.out.println("[TleMessagesAgent] processMessages");
+        System.out.println(String.format("[TleMessagesAgent] processMessages %s", this.recordList.size()));
         while(this.recordList.size() > 0) {
-            Long firstKey = this.recordList.getIndex(0).getKey();
-            Value vectorList = this.recordList.get(firstKey);
+            this.firstKey = this.recordList.getIndex(0).getKey();
+            this.vectorList = this.recordList.get(firstKey);
 
             // System.out.println(vectorList.getItem(0));
-            vectorList.forEach(vector -> {
+            this.vectorList.forEach(vector -> {
                 // System.out.println(vector.get("name").stringValue());
                 // System.out.println(vector.get("intlDesignator").stringValue());
                 // System.out.println(vector.get("catalogNumber").stringValue());
                 // System.out.println("------------");
 
-                String catalogNumber = vector.get("intlDesignator").stringValue();
-                String newPath = String.format("/satellite/%s", catalogNumber);
+                catalogNumber = vector.get("catalogNumber").stringValue();
+                newPath = String.format("/satellite/%s", catalogNumber);
                 // System.out.println("[KafkaAgent] update " + newPath);
                 command(Uri.parse(newPath), Uri.parse("updateData"), Value.fromObject(vector));
             });

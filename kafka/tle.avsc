@@ -1,8 +1,9 @@
 {
-	"name": "tleVectorList30",
+	"name": "tleVectorList43",
 	"type": "record",
 	"namespace": "ai.swim.sattrack",
-	"fields": [{
+	"fields": [
+        {
 			"name": "timestamp",
 			"type": "string"
 		},
@@ -125,9 +126,40 @@
                         {
                             "name": "height",
                             "type": "float"
+                        },
+                        {
+                            "name": "tle",
+                            "type": {
+                                "name": "trackList",
+                                "type": "array",
+                                "items": [
+                                    {
+                                        "name": "trackRecord",
+                                        "type": "string"
+                                    }
+                                ]   
+                            }
+                        },
+                        {
+                            "name": "tracks",
+                            "type": {
+                                "name": "trackList",
+                                "type": "array",
+                                "items": [
+                                    {
+                                        "name": "trackRecord",
+                                        "type": "record",
+                                        "fields": [
+                                            { "name": "timestamp", "type": "long" },
+                                            { "name": "lat", "type": "double" },
+                                            { "name": "long", "type": "double" }
+                                        ]
+                                    }
+                                ]   
+                            }
+                             
+                            
                         }
-
-
                     ]
                 }
             }
