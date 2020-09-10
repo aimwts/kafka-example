@@ -19,9 +19,8 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 version = project.property('application.version')
 mainClassName = 'swim.sattrack.ApplicationPlane'
 
-//def moduleName = 'swim.sattrack'
 def jvmVersion = System.getProperty('java.version').split('\\.')[0] as Integer
-def useModules = false;//jvmVersion >= 9 && !project.hasProperty('no-modules')
+def useModules = false;
 
 repositories {
   mavenCentral()
@@ -36,11 +35,8 @@ dependencies {
   implementation group: 'org.swimos', name: 'swim-xml', version: version
   implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '2.5.0'
   implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.5.0'  
+  implementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
 }
-
-// dependencies {
-//   compile fileTree(dir: 'lib', include: '*.jar')
-// }
 
 afterEvaluate {
   compileJava {

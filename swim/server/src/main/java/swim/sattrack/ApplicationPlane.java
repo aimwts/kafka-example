@@ -14,7 +14,7 @@ import swim.uri.Uri;
 
 /**
   The ApplicationPlane is the top level of the app.
-  This Swim Plane defines the routes to each WebAgent
+  This is where we define our Swim Kernel and Swim Space.
  */
 public class ApplicationPlane extends AbstractPlane {
 
@@ -27,6 +27,7 @@ public class ApplicationPlane extends AbstractPlane {
     System.out.println("Running Satellite Tracker Plane...");
     kernel.run();
 
+    space.command(Uri.parse("/aggregation"), Uri.parse("start"), Value.absent());
     space.command(Uri.parse("/layoutManager"), Uri.parse("start"), Value.absent());
     space.command(Uri.parse("/bridges/tleMessagesAgent"), Uri.parse("init"), Value.absent());
 

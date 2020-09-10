@@ -9,9 +9,18 @@ import swim.structure.Value;
 import swim.structure.Record;
 import swim.uri.Uri;
 
+/**
+ * A Satellite Agent is a stateful twin of a given satellite 
+ * in space catalog. Satellite Agents are created automatically by 
+ * the TleMessagesAgent when it receives new data from the 
+ * Space-Track.org API via our Swim Kafka Connector. 
+ *
+ */
 public class SatelliteAgent extends AbstractAgent {
 
-  final private int HISTORY_SIZE = 100;
+  final private int HISTORY_SIZE = 100; // max number of tracks to keep
+  private Value agentConfig; // will hold agent config values from server.recon
+  private String swimUrl; 
 
   @SwimLane("catalogNumber")
   protected ValueLane<Value> catalogNumber;
@@ -25,9 +34,15 @@ public class SatelliteAgent extends AbstractAgent {
   @SwimLane("longitude")
   protected ValueLane<Value> longitude;
 
+  /**
+   * lane which hold all of the data returned from API for this satellite
+   */
   @SwimLane("fullRowData")
   protected ValueLane<Value> fullRowData;
 
+  /**
+   * rough predictions of where the satellite is and will be
+   */
   @SwimLane("tracks")
   protected MapLane<Long, Value> tracks = this.<Long, Value>mapLane()
     .didUpdate((key, newValue, oldValue) -> {
@@ -36,6 +51,10 @@ public class SatelliteAgent extends AbstractAgent {
       }
     });
 
+  /**
+   * place to hold the raw TLE String array for later use
+   * The TLEs are 3 line and so line 0 is the satellite name
+   */
   @SwimLane("tle")
   protected ValueLane<Value> tle;  
 
@@ -45,17 +64,24 @@ public class SatelliteAgent extends AbstractAgent {
   @SwimLane("lastUpdate")
   protected ValueLane<Long> lastUpdate = this.<Long>valueLane();  
 
+  /**
+   * command lane used to update satellite data
+   * This data comes from Kafka and so the structure matches
+   * the schema in /kafka/tle.avsc
+   */
   @SwimLane("updateData")
   public CommandLane<Value> updateData = this.<Value>commandLane()
       .onCommand((Value newValue) -> {
-        if(!newValue.equals(Value.absent())) {
+        if(!newValue.equals(Value.absent()) && newValue != null) {
           this.updateSatellite(newValue);
         }
       });      
     
+  /**
+   * Method to parse out the data sent from kafka
+   */
   private void updateSatellite(Value stateData) {
     long timestamp = System.currentTimeMillis();
-    // Value stateData = newValue;//Json.parse(newValue.stringValue());  // convert incoming value into JSON
 
     this.fullRowData.set(stateData); // store new state data on fullState Value Lane
     this.catalogNumber.set(stateData.get("catalogNumber"));
@@ -64,14 +90,8 @@ public class SatelliteAgent extends AbstractAgent {
     this.longitude.set(stateData.get("longitude"));
     this.tle.set(stateData.get("tle"));
 
-    // System.out.println(this.tle.get());
-
-    // Record currentTrackPoint = Record.create(2)
-    // .slot("lat", this.latitude.get().floatValue(0f))
-    // .slot("lng", this.longitude.get().floatValue(0f));
-
+    // tracks are based on TLE propagation done by NodeJS prior to sending data into Kafka
     Value tracks = stateData.get("tracks");
-
     if(!tracks.equals(Value.absent())) {
       tracks.forEach(trackPoint -> {
 
@@ -81,15 +101,13 @@ public class SatelliteAgent extends AbstractAgent {
           .slot("lng", trackPoint.get("long").floatValue(0f))
           .toValue();
         
-          // System.out.println(String.format("%s %s", trackPoint.get("timestamp").longValue(0l), currentTrackPoint));
           this.tracks.put(trackPoint.get("timestamp").longValue(0l), currentTrackPoint);    
         }
       });
   
     }
-    
-    
 
+    // create record of info to send to aggregation agent for this satellite
     Record shortInfo = Record.create()
       .slot("name", stateData.get("name"))
       .slot("catalogNumber", stateData.get("catalogNumber"))
@@ -102,25 +120,27 @@ public class SatelliteAgent extends AbstractAgent {
       .slot("latitude", stateData.get("latitude"))
       .slot("longitude", stateData.get("longitude"));
 
-    command(Uri.parse("warp://127.0.0.1:9001"), Uri.parse("aggregation"), Uri.parse("addSatellite"), shortInfo); 
-
+    // send into to aggregation
+    try {
+      command(Uri.parse(this.swimUrl), Uri.parse("/aggregation"), Uri.parse("addSatellite"), shortInfo); 
+    } catch(Exception ex) {
+      // TODO: find out why this throws a null pointer sometimes when data first starts coming in
+      // the null pointers do not seem to affect anything
+      // ex.printStackTrace();
+    }
+    
     this.lastUpdate.set(timestamp); // update lastUpdate Value Lane
 
-    if(this.name.get().equals(Value.absent()) && !stateData.equals(Value.absent())) {
-
-      System.out.println("[SatelliteAgent] new satellite " + stateData.get("name").stringValue());
-  
-    }
-
-    
-
   }
+
+
   /**
     Standard startup method called automatically when WebAgent is created
    */
   @Override
   public void didStart() {
-
+    this.agentConfig = getProp("config"); // grab config value for this agent from server.recon
+    this.swimUrl = this.agentConfig.get("swimUrl").stringValue(); //update our swim url
   }
 
 }

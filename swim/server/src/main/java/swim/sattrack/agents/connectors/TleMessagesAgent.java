@@ -1,4 +1,4 @@
-package swim.sattrack.agents.bridges;
+package swim.sattrack.agents.connectors;
 
 import swim.sattrack.agents.connectors.KafkaAgent;
 import swim.api.SwimLane;
@@ -8,12 +8,24 @@ import swim.api.lane.ValueLane;
 import swim.structure.Value;
 import swim.uri.Uri;
 
+/**
+ * The TleMessagesAgent is responsible for relaying
+ * all the TLE data found on the Kafka Broker to each 
+ * satellite WebAgent that the data is for.
+ * This extends KafkaAgent which does the heavy lifting of
+ * connecting to Kafka and getting data. The details of server
+ * topic, schema, etc. are defined in the config for this agent 
+ * in server.recon
+ */
 public class TleMessagesAgent extends KafkaAgent {
     Long firstKey;
     Value vectorList;
     String catalogNumber;
     String newPath;
 
+    /**
+     * Handle all the records the Kafka Broker found for this agent's topic.
+     */
     @Override
     protected void processMessages() {
         System.out.println(String.format("[TleMessagesAgent] processMessages %s", this.recordList.size()));
@@ -21,16 +33,10 @@ public class TleMessagesAgent extends KafkaAgent {
             this.firstKey = this.recordList.getIndex(0).getKey();
             this.vectorList = this.recordList.get(firstKey);
 
-            // System.out.println(vectorList.getItem(0));
             this.vectorList.forEach(vector -> {
-                // System.out.println(vector.get("name").stringValue());
-                // System.out.println(vector.get("intlDesignator").stringValue());
-                // System.out.println(vector.get("catalogNumber").stringValue());
-                // System.out.println("------------");
 
                 catalogNumber = vector.get("catalogNumber").stringValue();
                 newPath = String.format("/satellite/%s", catalogNumber);
-                // System.out.println("[KafkaAgent] update " + newPath);
                 command(Uri.parse(newPath), Uri.parse("updateData"), Value.fromObject(vector));
             });
 

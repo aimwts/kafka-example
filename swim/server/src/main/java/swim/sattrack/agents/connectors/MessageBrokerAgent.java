@@ -6,11 +6,14 @@ import swim.api.lane.CommandLane;
 import swim.api.lane.ValueLane;
 import swim.structure.Value;
 
+/**
+ * Base abstract class to handle connection states
+ */
 public abstract class MessageBrokerAgent extends AbstractAgent {
 
   @SwimLane("init")
   private CommandLane<Value> init = this.<Value>commandLane().onCommand(value -> {
-    System.out.println("[MessageBrokerAgent] init");    
+    // System.out.println("[MessageBrokerAgent] init");    
   });
 
   @SwimLane("reconnect")
@@ -28,7 +31,7 @@ public abstract class MessageBrokerAgent extends AbstractAgent {
   abstract protected void disconnect();
 
   public void didStart() {
-    System.out.println("[MessageBrokerAgent] didStart");
+    // System.out.println("[MessageBrokerAgent] didStart");
     connect();
   }
 

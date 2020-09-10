@@ -1,29 +1,39 @@
 sattrack: @fabric {
   @plane(class: "swim.sattrack.ApplicationPlane")
 
+  # Aggregation WebAgent
   @node {
     pattern: "/aggregation"
     @agent(class: "swim.sattrack.agents.AggregationAgent")
   }    
 
+  # Satellite WebAgent
   @node {
+    # ID should be satellite catalog ID number
     pattern: "/satellite/:id"
-    @agent(class: "swim.sattrack.agents.SatelliteAgent")
+    @agent(class: "swim.sattrack.agents.SatelliteAgent") {
+      config: {
+        swimUrl: "warp://127.0.0.1:9001"
+      }
+    }
   }    
 
+  # WebAgent to get TLE messages from kafka
   @node {
     pattern: "/bridges/tleMessagesAgent"
-    @agent(class: "swim.sattrack.agents.bridges.TleMessagesAgent") {
+    @agent(class: "swim.sattrack.agents.connectors.TleMessagesAgent") {
       config: {
         groupIdConfig: "swim-example",
         servers: "localhost:9092",
         topic: "fullVectorList",
+        recordKey: "tleDataset",
         schemaUrl: "http://localhost:8081",
         pollInterval: 15000
       }
     }
   }    
 
+  # Layout WebAgents used for UI only 
   @node {
     pattern: "/layoutManager"
     @agent(class: "swim.sattrack.agents.ui.LayoutsManagerAgent") {
