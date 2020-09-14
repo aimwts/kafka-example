@@ -1,5 +1,5 @@
 {
-	"name": "tleVectorList43",
+	"name": "tleVectorList45",
 	"type": "record",
 	"namespace": "ai.swim.sattrack",
 	"fields": [
@@ -126,6 +126,27 @@
                         {
                             "name": "height",
                             "type": "float"
+                        },
+                        {
+                            "name": "position",
+                            "type": {
+                                "name": "positionData",
+                                "type": "record",
+                                "fields": [
+                                    {
+                                        "name": "x",
+                                        "type": "double"
+                                    },
+                                    {
+                                        "name": "y",
+                                        "type": "double"
+                                    },
+                                    {
+                                        "name": "z",
+                                        "type": "double"
+                                    }
+                                ]
+                            }
                         },
                         {
                             "name": "tle",

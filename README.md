@@ -10,7 +10,7 @@ From there we create Swim WebAgents act as a Kafka Consumer as well as Web Agent
 
 ## Getting Started
 ### Requirements:
-1. Java8+
+1. Java 8+
 2. NodeJS 12+
 3. Git
 4. Docker-Compose

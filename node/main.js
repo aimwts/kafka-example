@@ -142,6 +142,11 @@ const handleTleResult = (result) => {
             perigee: parseFloat(rowData.perigee),
             latitude: satellite.degreesLat(satLatitude),
             longitude: satellite.degreesLong(satLongitude),
+            position: {
+                x: parseFloat(positionEci.x),
+                y: parseFloat(positionEci.y),
+                z: parseFloat(positionEci.z)
+            },
             height: satHeight,
             tracks: satTracks
         };

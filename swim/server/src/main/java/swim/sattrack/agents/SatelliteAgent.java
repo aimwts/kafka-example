@@ -115,7 +115,7 @@ public class SatelliteAgent extends AbstractAgent {
       .slot("type", stateData.get("type"))
       .slot("orbitalPeriod", stateData.get("orbitalPeriod"))
       .slot("tle", stateData.get("tle"))
-      .slot("velocity", stateData.get("velocity"))
+      .slot("position", stateData.get("position"))
       .slot("height", stateData.get("height"))
       .slot("latitude", stateData.get("latitude"))
       .slot("longitude", stateData.get("longitude"));
