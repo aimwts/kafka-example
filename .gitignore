@@ -3,7 +3,6 @@
 .idea
 .gradle
 .vscode
-build
 out
 .env
 *.log
