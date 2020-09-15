@@ -28,21 +28,31 @@
   </style>
 
   <!-- javascript -->
-  <script src="assets/js/lib/swim-system.js"></script>
-  <script src="assets/js/lib/default.js"></script>
+  <script src="/assets/js/lib/swim-system.js"></script>
+  <script src="/assets/js/lib/default.js"></script>
+  <script src="/assets/js/lib/satellite.min.js"></script>
+  <script src="/assets/js/lib/moment.js"></script>
   <script src="/assets/js/lib/build/three.min.js"></script>
   <script src="/assets/js/lib/build/three.interaction.js"></script>
-  <script src="assets/js/layoutPlugin.js"></script>
+  <script src="/assets/js/layoutPlugin.js"></script>
   
   <body class="page">
     <div id="overlay"></div>
 		<script type="module">
 
       import { OrbitControls } from '/assets/js/lib/threejs/jsm/controls/OrbitControls.js';
-
+			import { EffectComposer } from '/assets/js/lib/threejs/jsm/postprocessing/EffectComposer.js';
+			import { RenderPass } from '/assets/js/lib/threejs/jsm/postprocessing/RenderPass.js';
+			import { UnrealBloomPass } from '/assets/js/lib/threejs/jsm/postprocessing/UnrealBloomPass.js';
       
       var clock = new THREE.Clock();
       var textureLoader = new THREE.TextureLoader();
+			var params = {
+				exposure: 1,
+				bloomStrength: 0.72,
+				bloomThreshold: 0,
+				bloomRadius: 0
+			};
 
       let earthMesh = null;
       let cloudMesh = null;
@@ -66,7 +76,8 @@
 			const renderer = new THREE.WebGLRenderer( { antialias: true } );
 			renderer.setPixelRatio( window.devicePixelRatio );
 			renderer.setSize( window.innerWidth, window.innerHeight );
-			renderer.outputEncoding = THREE.sRGBEncoding;
+      // renderer.outputEncoding = THREE.sRGBEncoding;
+      // renderer.toneMapping = THREE.ReinhardToneMapping;
       document.body.appendChild( renderer.domElement );
       const rootSwimElement = swim.HtmlView.fromNode(document.getElementById("overlay"));
 
@@ -94,11 +105,28 @@
 			controls.enablePan = false;
                 
       const interaction = new THREE.Interaction(renderer, scene, camera);
+
+      var renderScene = new RenderPass( scene, camera );
+
+			var bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth/4, window.innerHeight/4 ), 1.5, 0.4, 0.85 );
+			bloomPass.threshold = params.bloomThreshold;
+			bloomPass.strength = params.bloomStrength;
+			bloomPass.radius = params.bloomRadius;
+
+      var composer = new EffectComposer( renderer );
+      composer.setSize( window.innerWidth, window.innerHeight );
+			composer.addPass( renderScene );
+			composer.addPass( bloomPass );      
                 
       const dirLight = new THREE.DirectionalLight( 0xffffff );
       dirLight.position.set( - 1, 0, 1 ).normalize();
       scene.add( dirLight );      
-      
+
+			// scene.add( new THREE.AmbientLight( 0x404040 ) );
+
+			// var pointLight = new THREE.PointLight( 0xffffff, 1 );
+      // camera.add( pointLight );
+            
       const addEarth = () => {
         var radius = 6371/10;
         var tilt = 0.41;
@@ -139,19 +167,28 @@
       }    
 
       const satMeshes = {};
+      let trackMeshes = null;
       let selectedSatId = null;
+
+
 
       const updateSatellite = (satData) => {
 
         const satId = satData.get("catalogNumber").stringValue();
-        const satPos = satData.get("position").toObject();
+        let satPos = satData.get("position").toObject();
         const radius = 5, segments = 2, rings = 2, scale = 10;
         let material = new THREE.MeshBasicMaterial( { color: 0xffffff } )
+        const gmst = satellite.gstime(new Date());
+      const satrec = satellite.twoline2satrec(satData.get("tle").getItem(1).stringValue(), satData.get("tle").getItem(2).stringValue());
 
         if(!satMeshes[satId]) {
 
-          const sphere = new THREE.Mesh( new THREE.SphereGeometry(radius, segments, rings), material);
+          // const sphere = new THREE.Mesh( new THREE.SphereGeometry(radius, segments, rings), material);
 
+          var spriteMap = new THREE.TextureLoader().load( "/assets/js/lib/threejs/textures/sprites/circle.png" );
+          var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff, fog:true } );
+          var sphere = new THREE.Sprite( spriteMaterial );
+          
           sphere.cursor = 'pointer';
           sphere.on('click', function(ev) {
 
@@ -165,7 +202,7 @@
               }
             }
             selectedSatId = satData.get("catalogNumber").stringValue();
-            sphere.material.color.setHex(0xffffff);
+            sphere.material.color.setHex(0xa000ff);
             satellitePopoverView.hidePopover(fastTween);
             satellitePopoverView.width(380);
             satellitePopoverView.display("block");
@@ -190,7 +227,34 @@
                 
             satellitePopoverView.showPopover(fastTween);   
 
-            console.info(ev.data.originalEvent.offsetX, ev.data.originalEvent.offsetY,  satData.get("catalogNumber").stringValue());
+            // console.info(ev.data.originalEvent.offsetX, ev.data.originalEvent.offsetY,  satData.get("catalogNumber").stringValue());
+
+            if(trackMeshes != null) {
+              scene.remove(trackMeshes);
+            }
+            var points = [];
+
+            let satTracks = [];
+            let currDate = moment();
+            for(let i=0; i<=360; i++) {
+                const newDateObj = currDate.add(i*1, 's');
+                const testGmst = satellite.gstime(newDateObj.toDate());
+                const newPropagation = satellite.propagate(satrec, newDateObj.toDate());
+                const nextPositionEci = newPropagation.position;
+                const nextPositionGd = satellite.eciToGeodetic(nextPositionEci, testGmst);
+                // console.info(newPropagation.position);
+                var satPos = newPropagation.position;
+                points.push( new THREE.Vector3( satPos.x/scale, satPos.z/scale, satPos.y/scale ) );
+            }
+
+            var material = new THREE.LineBasicMaterial( { color: 0xffff00 } );
+            var geometry = new THREE.BufferGeometry().setFromPoints( points );
+            var line = new THREE.Line( geometry, material );
+            trackMeshes = line;
+            scene.add( line );
+            renderer.render( scene, camera );
+            console.info(satTracks);            
+            
           });          
           scene.add(sphere);
           satMeshes[satId] = sphere
@@ -206,9 +270,14 @@
           mesh.material.color.setHex(0x00ff00);
         }
         
-        mesh.position.x = satPos.x/scale;
-        mesh.position.y = satPos.z/scale;
-        mesh.position.z = satPos.y/scale;
+        const newPropagation = satellite.propagate(satrec, new Date());
+        satPos = newPropagation.position;
+        if(satPos && satPos.x) {
+          mesh.position.x = satPos.x/scale;
+          mesh.position.y = satPos.z/scale;
+          mesh.position.z = satPos.y/scale;
+          mesh.scale.set(10,10,1);
+        }
 
         
       }
@@ -229,10 +298,11 @@
 				// meshPlanet.rotation.y += rotationSpeed * delta;
         // cloudMesh.rotation.y += 1.25 * rotationSpeed * delta;
                 
-				renderer.render( scene, camera );
+        renderer.render( scene, camera );
+        // composer.render();
       };
       
-      swim.nodeRef(`warp://${window.location.host}`, 'aggregation').downlinkMap().laneUri('satelliteList')
+      swim.nodeRef(`warp://satellites.swim.ai`, 'aggregation').downlinkMap().laneUri('satelliteList')
             // when an new item is added to the list, append it to listItems
             .didUpdate((key, newValue) => {
                 updateSatellite(newValue);
