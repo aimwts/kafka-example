@@ -98,7 +98,9 @@
 			camera.position.set( 200, 500, 1000);
 
 			const controls = new OrbitControls( camera, renderer.domElement );
-			controls.target.set( 0, 0.5, 0 );
+      controls.target.set( 0, 0.5, 0 );
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 1;
 			controls.update();
 			controls.enablePan = false;
                 
@@ -288,16 +290,9 @@
 			var animate = function () {
         requestAnimationFrame( animate );
 
-        // var delta = clock.getDelta();
-        // var radius = 6371;
-        // var tilt = 0.41;
-        // var rotationSpeed = 0.002;        
-
-				// meshPlanet.rotation.y += rotationSpeed * delta;
-        // cloudMesh.rotation.y += 1.25 * rotationSpeed * delta;
-                
-        renderer.render( scene, camera );
-        // composer.render();
+        controls.update();
+        // renderer.render( scene, camera );
+        composer.render();
       };
       
       swim.nodeRef(`warp://${window.location.host}`, 'aggregation').downlinkMap().laneUri('satelliteList')
@@ -308,7 +303,7 @@
             .open();          
 
       // startup everything
-      addEarth();
+      // addEarth();
       animate();   
 
     </script>
