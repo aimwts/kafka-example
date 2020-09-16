@@ -1,5 +1,5 @@
 {
-	"name": "tleVectorList45",
+	"name": "tleVectorList46",
 	"type": "record",
 	"namespace": "ai.swim.sattrack",
 	"fields": [
@@ -160,26 +160,6 @@
                                     }
                                 ]   
                             }
-                        },
-                        {
-                            "name": "tracks",
-                            "type": {
-                                "name": "trackList",
-                                "type": "array",
-                                "items": [
-                                    {
-                                        "name": "trackRecord",
-                                        "type": "record",
-                                        "fields": [
-                                            { "name": "timestamp", "type": "long" },
-                                            { "name": "lat", "type": "double" },
-                                            { "name": "long", "type": "double" }
-                                        ]
-                                    }
-                                ]   
-                            }
-                             
-                            
                         }
                     ]
                 }

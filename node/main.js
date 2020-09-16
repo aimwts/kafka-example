@@ -85,7 +85,7 @@ const handleTleResult = (result) => {
 
         const gmst = satellite.gstime(new Date());
         const satrec = satellite.twoline2satrec(rowData.tle[1], rowData.tle[2]);
-        const positionAndVelocity = satellite.sgp4(satrec, gmst);
+        const positionAndVelocity = satellite.propagate(satrec, new Date());
         const positionEci = positionAndVelocity.position;
         // const velocityEci = positionAndVelocity.velocity;
         const positionGd    = satellite.eciToGeodetic(positionEci, gmst);
@@ -93,25 +93,6 @@ const handleTleResult = (result) => {
         const satLatitude  = positionGd.latitude;
         const satHeight    = positionGd.height;        
 
-        // console.info(rowData.name, velocityEci);
-
-        // build track list
-        let satTracks = [];
-        let currDate = moment();
-        for(let i=0; i<=5; i++) {
-            const newDateObj = currDate.add(i*1, 'm');
-            const testGmst = satellite.gstime(newDateObj.toDate());
-            const newPropagation = satellite.sgp4(satrec, testGmst);
-            const nextPositionEci = newPropagation.position;
-            const nextPositionGd = satellite.eciToGeodetic(nextPositionEci, testGmst);
-            satTracks.push({
-                timestamp: newDateObj.valueOf(),
-                lat: satellite.degreesLat(nextPositionGd.latitude),
-                long: satellite.degreesLong(nextPositionGd.longitude)
-            });
-        }
-        // console.info(satTracks);
-    
 
         const satData = {
             name: rowData.name,
@@ -147,8 +128,7 @@ const handleTleResult = (result) => {
                 y: parseFloat(positionEci.y),
                 z: parseFloat(positionEci.z)
             },
-            height: satHeight,
-            tracks: satTracks
+            height: satHeight
         };
 
         // console.info(rowData.tle[1], rowData.tle[2]);

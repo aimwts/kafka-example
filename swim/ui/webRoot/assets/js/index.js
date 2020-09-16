@@ -11,7 +11,7 @@ class IndexPage {
         this.links = {};        
         this.backgroundWorker = null;
         this.fastTween = swim.Transition.duration(300);
-        this.markerTween = swim.Transition.duration(1000);
+        this.markerTween = swim.Transition.duration(60000);
         this.userGuid = null;
 
         // LayoutManager related values
@@ -332,7 +332,7 @@ class IndexPage {
                 const boundsCheck = this.checkBounds(boundsRecord, this.mapBoundingBox);
 
                 // if current satellite data dirty and on screen, create/update it
-                if(this.satelliteDataset[catalogId].dirty === true && boundsCheck[2] === true) {
+                if(this.satelliteDataset[catalogId].dirty === true /*&& boundsCheck[2] === true*/) {
                         
                     // render marker
                     this.renderSatelliteMarker(catalogId, currentSatellite);

@@ -90,22 +90,30 @@ public class SatelliteAgent extends AbstractAgent {
     this.longitude.set(stateData.get("longitude"));
     this.tle.set(stateData.get("tle"));
 
-    // tracks are based on TLE propagation done by NodeJS prior to sending data into Kafka
-    Value tracks = stateData.get("tracks");
-    if(!tracks.equals(Value.absent())) {
-      tracks.forEach(trackPoint -> {
-
-        if(trackPoint != Value.absent()) {
-          Value currentTrackPoint = Record.create(2)
-          .slot("lat", trackPoint.get("lat").floatValue(0f))
-          .slot("lng", trackPoint.get("long").floatValue(0f))
-          .toValue();
-        
-          this.tracks.put(trackPoint.get("timestamp").longValue(0l), currentTrackPoint);    
-        }
-      });
+    Value currentTrackPoint = Record.create(2)
+      .slot("lat", stateData.get("latitude").floatValue(0f))
+      .slot("lng", stateData.get("longitude").floatValue(0f))
+      .toValue();
   
-    }
+    this.tracks.put(timestamp, currentTrackPoint);    
+
+
+    // tracks are based on TLE propagation done by NodeJS prior to sending data into Kafka
+    // Value tracks = stateData.get("tracks");
+    // if(!tracks.equals(Value.absent())) {
+    //   tracks.forEach(trackPoint -> {
+
+    //     if(trackPoint != Value.absent()) {
+    //       Value currentTrackPoint = Record.create(2)
+    //       .slot("lat", trackPoint.get("lat").floatValue(0f))
+    //       .slot("lng", trackPoint.get("long").floatValue(0f))
+    //       .toValue();
+        
+    //       this.tracks.put(trackPoint.get("timestamp").longValue(0l), currentTrackPoint);    
+    //     }
+    //   });
+  
+    // }
 
     // create record of info to send to aggregation agent for this satellite
     Record shortInfo = Record.create()

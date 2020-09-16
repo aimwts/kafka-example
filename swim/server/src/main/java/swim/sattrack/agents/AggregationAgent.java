@@ -5,6 +5,7 @@ import swim.api.agent.AbstractAgent;
 import swim.api.lane.CommandLane;
 import swim.api.lane.ValueLane;
 import swim.api.lane.MapLane;
+import swim.structure.Record;
 import swim.structure.Value;
 import swim.uri.Uri;
 
@@ -21,12 +22,51 @@ public class AggregationAgent extends AbstractAgent {
      * Satellite WebAgent when it gets its update.
      */
     @SwimLane("satelliteList")
-    MapLane<String, Value> satelliteList = this.<String, Value>mapLane()
-    .didUpdate((key, newValue, oldValue) -> {
-        // System.out.println(newValue);
-        // System.out.println(String.format("[AggregationAgent] satelliteList size: %s", this.satelliteList.size()));
-    });
+    MapLane<String, Value> satelliteList = this.<String, Value>mapLane();
 
+    @SwimLane("satellitesTypeCount")
+    MapLane<String, Record> satellitesTypeCount = this.<String, Record>mapLane();
+
+    @SwimLane("payloadList")
+    MapLane<String, Value> payloadList = this.<String, Value>mapLane()
+      .didUpdate((k, n, o) -> {
+        Value typeRecord = this.satellitesTypeCount.get("payload");
+        Integer typeCount = typeRecord.get("count").intValue(0);
+        if(typeCount != this.payloadList.size()) {
+          Record newCount = Record.create(2)
+            .slot("name", "Payload")
+            .slot("count", this.payloadList.size());
+          this.satellitesTypeCount.put("payload", newCount);
+        }        
+        
+      });    
+
+    @SwimLane("debrisList")
+    MapLane<String, Value> debrisList = this.<String, Value>mapLane()
+      .didUpdate((k, n, o) -> {
+        Value typeRecord = this.satellitesTypeCount.get("debris");
+        Integer typeCount = typeRecord.get("count").intValue(0);
+        if(typeCount != this.debrisList.size()) {
+          Record newCount = Record.create(2)
+            .slot("name", "Debris")
+            .slot("count", this.rocketBodyList.size());
+          this.satellitesTypeCount.put("debris", newCount);
+        }        
+      });    
+
+    @SwimLane("rocketBodyList")
+    MapLane<String, Value> rocketBodyList = this.<String, Value>mapLane()
+      .didUpdate((k, n, o) -> {
+        Value typeRecord = this.satellitesTypeCount.get("rocketBody");
+        Integer typeCount = typeRecord.get("count").intValue(0);
+        if(typeCount != this.rocketBodyList.size()) {
+          Record newCount = Record.create(2)
+            .slot("name", "Rocket Body")
+            .slot("count", this.rocketBodyList.size());
+          this.satellitesTypeCount.put("rocketBody", newCount);
+        }        
+      });    
+        
     /**
      * Command lane used by Satellite WebAgents to add/update
      * its data in the main satellite list.
@@ -34,7 +74,25 @@ public class AggregationAgent extends AbstractAgent {
     @SwimLane("addSatellite")
     public CommandLane<Value> addSatellite = this.<Value>commandLane()
         .onCommand((Value newValue) -> {
-          this.satelliteList.put(newValue.get("catalogNumber").stringValue(), newValue);
-        });    
+          String catId = newValue.get("catalogNumber").stringValue();
+          Value currSat = this.satelliteList.get(catId);
+          if(currSat == Value.absent()) {
+            String satType = newValue.get("type").stringValue();
+            switch(satType) {
+              case "PAYLOAD":
+                this.payloadList.put(catId, newValue);
+                break;
+              case "DEBRIS":
+                this.debrisList.put(catId, newValue);
+                break;
+              default:
+                this.rocketBodyList.put(catId, newValue);
+                break;
 
+            }
+  
+          }    
+          this.satelliteList.put(catId, newValue);
+        });    
+         
 }
