@@ -6,9 +6,9 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>Swim</title>
+  <title>Swim - Satellites 3D View</title>
   <meta name="description" content="">
-  <link rel="icon" type="image/png" href="assets/favicon_x128.png">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
 
   <!-- styles -->
   <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css">
@@ -16,12 +16,21 @@
   <link rel="stylesheet" href="assets/css/style.css" type="text/css">
   <style>
     #overlay {
-      width: 1143px;
-      height: 979px;
+      width: 100%;
+      height: 100%;
       display: block;
       z-index: 100;
       position: fixed;
       pointer-events: none;
+    }
+    .popupMarker {
+      width: 10px;
+      height: 10px;
+      position: absolute;
+      top: -100px;
+      left: -100px;
+      border: solid 0px red;
+      border-radius: 10px;
     }
     body { margin: 0; }
 		canvas { display: block; }
@@ -37,6 +46,52 @@
   <script src="/assets/js/layoutPlugin.js"></script>
   
   <body class="page">
+    <!-- header -->
+    <header class="main-header">
+      <div class="prism-line"></div>
+      <div class="content-left">
+        <a href="http://swim.ai" target="_blank">
+          <img src="https://cdn.swim.ai/images/logos/marlin/swim-marlin-logo.svg" style="pointer-events: visibleFill;">
+        </a>
+        <div class="heading">
+          <div class="title">Satellites</div>
+          <div class="subtitle">Kafka Demo</div>
+        </div>
+        <div class="form-select">
+          <!-- <select id="typeDropDown">
+            <option value="none">Type</option>
+            <option value="payload" selected>Payload</option>
+            <option value="debris">Debris</option>
+            <option value="rocket body">Rocket Body</option>
+          </select>
+          <select id="constDropDown">
+            <option value="none">Constellation</option>
+            <option value="starlink">Starlink</option>
+            <option value="glonass">Glonass</option>
+            <option value="oneweb">OneWeb</option>
+            <option value="beidou">Beidou</option>
+            <option value="galaxy">Galaxy</option>
+            <option value="amos">Amos</option>
+            <option value="arabsat">Arabsat</option>
+            <option value="iridium">Iridium</option>
+            <option value="spacebee">SpaceBee</option>
+            <option value="usa">GPS</option>
+            <option value="fregat">Fregat</option>
+            <option value="atlas">Atlas 5 R/B</option>
+            <option value="falcon 9">Falcon 9 R/B</option>
+            <option value="ariane">Ariane R/B</option>
+            <option value="delta">Delta R/B</option>
+            <option value="titan">Titan R/B</option>
+            <option value="pegasus">Pegasus R/B</option>
+            <option value="electron">Electron R/B</option>
+            <option value="sl-">SL Type R/B</option>
+            <option value="cz-">CZ Type R/B</option>
+          </select>           -->
+        </div>
+      </div>
+    </header>
+
+    <!-- /header -->    
     <div id="overlay"></div>
 		<script type="module">
 
@@ -80,6 +135,10 @@
       document.body.appendChild( renderer.domElement );
       const rootSwimElement = swim.HtmlView.fromNode(document.getElementById("overlay"));
 
+      const popupMarker = swim.HtmlView.create("div");
+      popupMarker.className("popupMarker");
+      rootSwimElement.append(popupMarker);
+
       const satellitePopoverView = new swim.PopoverView()
             .borderRadius(10)
             .padding(0)
@@ -92,13 +151,16 @@
       satellitePopoverContent.render("7cd1b130");
       satellitePopoverView.display("none");
       satellitePopoverView.append(satellitePopoverContent);
+      satellitePopoverView.setSource(popupMarker);   
       rootSwimElement.append(satellitePopoverView);           
 
       const camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);     
 			camera.position.set( 200, 500, 1000);
 
 			const controls = new OrbitControls( camera, renderer.domElement );
-			controls.target.set( 0, 0.5, 0 );
+      controls.target.set( 0, 0.5, 0 );
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 1;
 			controls.update();
 			controls.enablePan = false;
                 
@@ -168,7 +230,11 @@
       let trackMeshes = null;
       let selectedSatId = null;
 
-
+      var windowWidth = window.innerWidth;
+      var windowHeight = window.innerHeight;
+      var widthHalf = windowWidth / 2;
+      var heightHalf = windowHeight / 2;
+      var selectedMesh = null;
 
       const updateSatellite = (satData) => {
 
@@ -190,6 +256,7 @@
           sphere.cursor = 'pointer';
           sphere.on('click', function(ev) {
 
+            selectedMesh = sphere;
             if(selectedSatId !== null) {
               if(satData.get("type").stringValue() === "PAYLOAD") {
                 satMeshes[selectedSatId].material.color.setHex(0x0000ff);
@@ -251,7 +318,7 @@
             trackMeshes = line;
             scene.add( line );
             renderer.render( scene, camera );
-            console.info(satTracks);            
+            // console.info(satTracks);            
             
           });          
           scene.add(sphere);
@@ -288,6 +355,20 @@
 			var animate = function () {
         requestAnimationFrame( animate );
 
+        if(selectedMesh != null) {
+          const pos = selectedMesh.position.clone()
+          pos.project(camera)
+          const posX = (pos.x * widthHalf) + widthHalf;
+          const posY = - (pos.y * heightHalf) + heightHalf;
+          // console.info(posX, posY);
+          // satellitePopoverView.left(posX-(380/2));            
+          // satellitePopoverView.top(posY-175);     
+          
+          popupMarker.top(posY-5);
+          popupMarker.left(posX-5);
+
+        }
+
         // var delta = clock.getDelta();
         // var radius = 6371;
         // var tilt = 0.41;
@@ -295,7 +376,7 @@
 
 				// meshPlanet.rotation.y += rotationSpeed * delta;
         // cloudMesh.rotation.y += 1.25 * rotationSpeed * delta;
-                
+        controls.update();
         renderer.render( scene, camera );
         // composer.render();
       };

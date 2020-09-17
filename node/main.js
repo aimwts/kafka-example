@@ -88,6 +88,10 @@ const handleTleResult = (result) => {
         const positionAndVelocity = satellite.propagate(satrec, new Date());
         const positionEci = positionAndVelocity.position;
         // const velocityEci = positionAndVelocity.velocity;
+        if(!positionEci) {
+            // console.info(satrec);
+            return;
+        }
         const positionGd    = satellite.eciToGeodetic(positionEci, gmst);
         const satLongitude = positionGd.longitude;
         const satLatitude  = positionGd.latitude;
