@@ -5,6 +5,12 @@ This is a demo showing how to consume data from Kafka with Swim and how to turn 
 
 In this example we will use NodeJS as a generic Kafka Producer which fetches satellite data from Space-Track.org on a regular interval and sends that data to a standard Kafka Broker running inside a Docker instance. From there we use Swim WebAgents to act as a Kafka Consumer as well as Web Agents for every satellite currently being tracked by the API.
 
+We have two live demos you can try right now. In these demos we use MapBox and Three.js to visualize every tracked satellite and demonstrate ways to interact with that data. Both are developed using JavaScript and our Swim UI Library.
+
+ * 2D Map [http://satellites.swim.ai/](http://satellites.swim.ai/)
+ * 3D Map [http://satellites.swim.ai/3d.html](http://satellites.swim.ai/3d.html)
+
+![screnshots](/swim/ui/webRoot/assets/images/maps-screencap.png)
 
 ## Getting Started
 ### Requirements:
