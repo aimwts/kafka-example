@@ -1,6 +1,5 @@
 # Simple Kafka Consumer using Swim
 
-## Overview
 <a href="https://www.swimos.org"><img src="https://docs.swimos.org/readme/marlin-blue.svg" align="left"></a>
 This is a demo showing how to consume data from Kafka with Swim and how to turn that data into stateful web agents.
 
