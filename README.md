@@ -1,6 +1,7 @@
 # Simple Kafka Consumer using Swim
 
 ## Overview
+<a href="https://www.swimos.org"><img src="https://docs.swimos.org/readme/marlin-blue.svg" align="left"></a>
 This is a demo showing how to consume data from Kafka with Swim and how to turn that data into stateful web agents.
 
 In this example we will use NodeJS as a generic Kafka Producer which fetches satellite data from Space-Track.org on a regular interval and sends that data to a standard Kafka Broker running inside a Docker instance. From there we use Swim WebAgents to act as a Kafka Consumer as well as Web Agents for every satellite currently being tracked by the API.
