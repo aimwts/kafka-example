@@ -11,7 +11,7 @@ class IndexPage {
         this.links = {};        
         this.backgroundWorker = null;
         this.fastTween = swim.Transition.duration(300);
-        this.markerTween = swim.Transition.duration(60000);
+        this.markerTween = swim.Transition.duration(0);
         this.userGuid = null;
 
         // LayoutManager related values
@@ -350,8 +350,6 @@ class IndexPage {
 
         //decide what the marker color needs to be
         const highlightFillColor = swim.Color.rgb(249, 240, 112, 1);
-        const startColor = swim.Color.rgb(0, 0, 255, 0.95).hsl();
-        const endColor = swim.Color.rgb(255, 0, 0, 0.95).hsl();
         let newRgb = new swim.Color.rgb().hsl();
         let newRadius = 4;
         let canMarkerRender = false;
@@ -367,26 +365,50 @@ class IndexPage {
             newRadius = 1;
         }
 
+        const colorBy = "height";
+        
         if(satelliteData.get("name").stringValue().toLowerCase().indexOf(this.selectedConstellation) >= 0) {
             newRgb = highlightFillColor;
             newRadius = 7;
         } else {
-            let altitude = satelliteData.get("height").numberValue(0);
-            if(altitude >= this.highestAltitude && altitude < 30000) {
-                this.highestAltitude = altitude;
+
+            switch(colorBy) {
+                case "height":
+                    //color by height/altitude
+                    const startColor = swim.Color.rgb(0, 0, 255, 0.95).hsl();
+                    const endColor = swim.Color.rgb(255, 0, 0, 0.95).hsl();
+                    let altitude = satelliteData.get("height").numberValue(0);
+                    if(altitude >= this.highestAltitude && altitude < 30000) {
+                        this.highestAltitude = altitude;
+                    }
+                    if(altitude <= this.lowestAltitude) {
+                        this.lowestAltitude = altitude;
+                    }
+                    let maxAlt = this.highestAltitude;
+                    if (altitude > maxAlt) {
+                        altitude = maxAlt;
+                    }
+                    // maxAlt = maxAlt - this.lowestAltitude;
+                    // altitude = altitude - this.lowestAltitude;
+                    newRgb.h = this.interpolate(startColor.h, endColor.h, altitude, maxAlt);
+                    newRgb.s = this.interpolate(startColor.s, endColor.s, altitude, maxAlt);
+                    newRgb.l = this.interpolate(startColor.l, endColor.l, altitude, maxAlt);
+                    break;
+                case "type":
+                    const satType = satelliteData.get("type").stringValue().toLowerCase();
+                    switch(satType) {
+                        case "payload":
+                            newRgb = swim.Color.rgb(0, 255, 0, 1);
+                            break;
+                        case "debris":
+                            newRgb = swim.Color.rgb(255, 0, 0, 1);
+                            break;
+                        case "rocket body":
+                            newRgb = swim.Color.rgb(0, 0, 255, 1);
+                            break;
+                    }
+                    break;
             }
-            if(altitude <= this.lowestAltitude) {
-                this.lowestAltitude = altitude;
-            }
-            let maxAlt = this.highestAltitude;
-            if (altitude > maxAlt) {
-                altitude = maxAlt;
-            }
-            // maxAlt = maxAlt - this.lowestAltitude;
-            // altitude = altitude - this.lowestAltitude;
-            newRgb.h = this.interpolate(startColor.h, endColor.h, altitude, maxAlt);
-            newRgb.s = this.interpolate(startColor.s, endColor.s, altitude, maxAlt);
-            newRgb.l = this.interpolate(startColor.l, endColor.l, altitude, maxAlt);
         }
 
         let markerFillColor = newRgb.rgb().alpha(0.5);

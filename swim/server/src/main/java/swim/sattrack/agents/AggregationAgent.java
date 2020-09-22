@@ -27,6 +27,9 @@ public class AggregationAgent extends AbstractAgent {
     @SwimLane("satellitesTypeCount")
     MapLane<String, Record> satellitesTypeCount = this.<String, Record>mapLane();
 
+    @SwimLane("satellitesByCountry")
+    MapLane<String, Record> satellitesByCountry = this.<String, Record>mapLane();
+
     @SwimLane("payloadList")
     MapLane<String, Value> payloadList = this.<String, Value>mapLane()
       .didUpdate((k, n, o) -> {
@@ -49,7 +52,7 @@ public class AggregationAgent extends AbstractAgent {
         if(typeCount != this.debrisList.size()) {
           Record newCount = Record.create(2)
             .slot("name", "Debris")
-            .slot("count", this.rocketBodyList.size());
+            .slot("count", this.debrisList.size());
           this.satellitesTypeCount.put("debris", newCount);
         }        
       });    
@@ -90,9 +93,18 @@ public class AggregationAgent extends AbstractAgent {
                 break;
 
             }
-  
+            // System.out.println(newValue);
+            String countryCode = newValue.get("countryCode").stringValue("Unknown");
+            Value currCountryValue = this.satellitesByCountry.get(countryCode);
+            Integer countryCount = currCountryValue.get("count").intValue(0) + 1;
+            Record newCount = Record.create(2)
+              .slot("name", countryCode)
+              .slot("count", countryCount);
+            this.satellitesByCountry.put(countryCode, newCount);
+
+            this.satelliteList.put(catId, newValue);  
           }    
-          this.satelliteList.put(catId, newValue);
+
         });    
          
 }

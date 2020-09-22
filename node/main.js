@@ -33,23 +33,23 @@ const getLatestTLEs = () => {
         password: process.env.SPACETRACK_PASSWORD,
     });
 
-    for(let i=0; i<consecutiveFetches; i++) {
+    // for(let i=0; i<consecutiveFetches; i++) {
         const queryOptions = (options = {
             controller: "basicspacedata", // defaults to 'basicspacedata'
             action: "query", // defaults to 'query'
-    
-            type: "tle_latest", // required, must be one of the following:
+            type: "gp", // required, must be one of the following:
             // tle, tle_latest, tle_publish, omm, boxscore, satcat,
             // launch_site, satcat_change, satcat_debut, decay, tip, csm
     
             query: [
-                // optional, but highly recommended
-                { field: "ORDINAL", condition: "1" },
+                { field: "DECAYED", condition: "0" },
                 { field: "EPOCH", condition: ">now-1" },
                 { field: "OBJECT_TYPE", condition: "<>TBA" }, // e.g. (see the API documentation)
+                // optional, but highly recommended
             ],
     
             predicates: [  // optional
+
             ],
     
             // favorites: [  // optional
@@ -58,29 +58,34 @@ const getLatestTLEs = () => {
     
             orderby: [
                 // optional
-                "-NORAD_CAT_ID", // descending by NORAD_CAT_ID
+                "NORAD_CAT_ID", // descending by NORAD_CAT_ID
             ],
     
-            limit: rowsToFetch, // optional, but recommended
-            offset: rowsToFetch*i, // optional (needs limit to be set, otherwise limit defaults to 100)
+            // limit: 5, // optional, but recommended
+            // offset: rowsToFetch*i, // optional (needs limit to be set, otherwise limit defaults to 100)
     
             // distinct: true // optional (this option causes some hiccups)
         });
     
         spacetrack.get(queryOptions).then(handleTleResult, handleTleError);
-    }
+    // }
 
 };
 
+const handleTleResult2 = (result) => {
+    console.info(result);
+}
+
 const handleTleResult = (result) => {
-    console.info("received tle results");
+    console.info(`received tle results ${result.length}`);
     // console.log(util.inspect(result, { colors: true, depth: null }));
 
     const fullDataset = [];
     let totalNewVectors = 0;
+    const maxResults = (result.length > 16000) ? 16000 : result.length
 
     // the raw result data is all strings, so convert to proper data types to match the AVRO schema
-    for (let i = 0; i < result.length; i++) {
+    for (let i = 0; i < maxResults; i++) {
         const rowData = result[i];
 
         const gmst = satellite.gstime(new Date());
@@ -119,12 +124,12 @@ const handleTleResult = (result) => {
             ephemerisType: parseInt(rowData.ephemerisType),
             comment: rowData.comment,
             originator: rowData.originator,
-            ordinal: parseInt(rowData.ordinal),
+            ordinal: parseInt(rowData.ordinal || 0.0),
             file: parseInt(rowData.file),
             tle: rowData.tle,
             orbitalPeriod: parseFloat(rowData.orbitalPeriod),
-            apogee: parseFloat(rowData.apogee),
-            perigee: parseFloat(rowData.perigee),
+            apogee: parseFloat(rowData.apogee || 0.0),
+            perigee: parseFloat(rowData.perigee || 0.0),
             latitude: satellite.degreesLat(satLatitude),
             longitude: satellite.degreesLong(satLongitude),
             position: {
@@ -132,23 +137,31 @@ const handleTleResult = (result) => {
                 y: parseFloat(positionEci.y),
                 z: parseFloat(positionEci.z)
             },
-            height: satHeight
+            height: satHeight,
+            countryCode: rowData.countryCode || "Unknown",
+            rcsSize: rowData.rcsSize || "Unknown",
+            launchSiteCode: rowData.launchSiteCode || "Unknown",
+            orbitalPeriod: parseFloat(rowData.orbitalPeriod || 0.0)
         };
 
         // console.info(rowData.tle[1], rowData.tle[2]);
-
+        if(i%100 == 1) {
+            // console.info(` row ${i}`);
+        }
         fullDataset.push(satData);
         totalNewVectors++;
     }
 
-    console.info(`${totalNewVectors} results parsed, begin encoding`);
-    var milliseconds = new Date().getTime();
+    console.info(`${totalNewVectors} of ${fullDataset.length} results parsed, begin encoding`);
+    //
 
-    var newSatVector = {
-        timestamp: milliseconds.toString(),
-        tleDataset: fullDataset,
-    };
-    const parseResults = async () => {
+
+    const encodeAndSend = async (dataset) => {
+        var milliseconds = new Date().getTime();
+        var newSatVector = {
+            timestamp: milliseconds.toString(),
+            tleDataset: dataset,
+        };        
         const outgoingMessage = {
             key: milliseconds.toString(),
             value: await registry.encode(storedSchema.id, newSatVector),
@@ -163,9 +176,25 @@ const handleTleResult = (result) => {
                 console.info("send complete");
             });
     };
-    parseResults().catch(async (e) => {
-        console.error(e);
-    });
+
+    let totalRecordCount = fullDataset.length;
+    let recordIndex = 0;
+    const recordsPerMessage = 1000;
+    while(totalRecordCount > 0) {
+        const subCount = (totalRecordCount >= recordsPerMessage) ? recordsPerMessage : totalRecordCount;
+        const subSet = fullDataset.slice(recordIndex, (recordIndex+subCount));
+
+        encodeAndSend(subSet).catch(async (e) => {
+            console.error(e);
+        });
+
+        recordIndex = recordIndex + subCount;
+        totalRecordCount = totalRecordCount - subCount;
+    }
+    
+    // encodeAndSend().catch(async (e) => {
+    //     console.error(e);
+    // });
 };
 
 const handleTleError = (err) => {

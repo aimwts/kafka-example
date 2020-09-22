@@ -126,7 +126,10 @@ public class SatelliteAgent extends AbstractAgent {
       .slot("position", stateData.get("position"))
       .slot("height", stateData.get("height"))
       .slot("latitude", stateData.get("latitude"))
-      .slot("longitude", stateData.get("longitude"));
+      .slot("longitude", stateData.get("longitude"))
+      .slot("countryCode", stateData.get("countryCode"))
+      .slot("rcsSize", stateData.get("rcsSize"))
+      .slot("launchSiteCode", stateData.get("launchSiteCode"));
 
     // send into to aggregation
     try {

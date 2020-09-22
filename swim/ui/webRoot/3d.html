@@ -98,7 +98,7 @@
       import { OrbitControls } from '/assets/js/lib/threejs/jsm/controls/OrbitControls.js';
 			import { EffectComposer } from '/assets/js/lib/threejs/jsm/postprocessing/EffectComposer.js';
 			import { RenderPass } from '/assets/js/lib/threejs/jsm/postprocessing/RenderPass.js';
-			import { UnrealBloomPass } from '/assets/js/lib/threejs/jsm/postprocessing/UnrealBloomPass.js';
+      import { UnrealBloomPass } from '/assets/js/lib/threejs/jsm/postprocessing/UnrealBloomPass.js';
       
       var clock = new THREE.Clock();
       var textureLoader = new THREE.TextureLoader();
@@ -107,7 +107,8 @@
 				bloomStrength: 2.7,
 				bloomThreshold: 0,
 				bloomRadius: 0
-			};
+      };
+      const scale = 10;
 
       let earthMesh = null;
       let cloudMesh = null;
@@ -125,13 +126,17 @@
       const FAR = 50000;
             
       var scene = new THREE.Scene();
-      scene.background = new THREE.Color( 0x000000 );
+      // scene.background = new THREE.Color( 0x000000 );
       // scene.fog = new THREE.FogExp2( 0x000000, 0.00000025 );
 
-			const renderer = new THREE.WebGLRenderer( { antialias: true } );
+			const renderer = new THREE.WebGLRenderer( { antialias: false } );
 			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( window.innerWidth, window.innerHeight );
+      renderer.setSize( window.innerWidth, window.innerHeight );
+      renderer.physicallyCorrectLights;
+      renderer.gammaFactor = 2.2;
+      renderer.gammaOutput = true;
       renderer.outputEncoding = THREE.sRGBEncoding;
+      // renderer.toneMapping = THREE.ACESFilmicToneMapping
       document.body.appendChild( renderer.domElement );
       const rootSwimElement = swim.HtmlView.fromNode(document.getElementById("overlay"));
 
@@ -145,7 +150,7 @@
             .arrowHeight(20)
             .arrowWidth(20)
             .backgroundColor(swim.Color.parse("#071013").alpha(0.7))
-            .backdropFilter("blur(2px)");
+            .backdropFilter("blur(5px)");
             
       const satellitePopoverContent = swim.HtmlView.create("div");
       satellitePopoverContent.render("7cd1b130");
@@ -160,7 +165,7 @@
 			const controls = new OrbitControls( camera, renderer.domElement );
       controls.target.set( 0, 0.5, 0 );
       controls.autoRotate = true;
-      controls.autoRotateSpeed = 1;
+      controls.autoRotateSpeed = 0.2;
 			controls.update();
 			controls.enablePan = false;
                 
@@ -182,13 +187,13 @@
       dirLight.position.set( - 1, 0, 1 ).normalize();
       scene.add( dirLight );      
 
-			// scene.add( new THREE.AmbientLight( 0x404040 ) );
+      scene.add( new THREE.AmbientLight( 0x020202 ) );
 
 			// var pointLight = new THREE.PointLight( 0xffffff, 1 );
       // camera.add( pointLight );
             
       const addEarth = () => {
-        var radius = 6371/10;
+        var radius = 6371/scale;
         var tilt = 0.41;
         var rotationSpeed = 0.02;
 
@@ -224,6 +229,14 @@
         cloudMesh.rotation.z = tilt;
         scene.add( cloudMesh );        
 
+        // var loader = new THREE.CubeTextureLoader();
+				// loader.setPath( '/assets/js/lib/threejs/textures/cube/MilkyWay/' );
+
+				// const textureCube = loader.load( [ 'dark-s_px.jpg', 'dark-s_nx.jpg', 'dark-s_py.jpg', 'dark-s_ny.jpg', 'dark-s_pz.jpg', 'dark-s_nz.jpg' ] );
+				// textureCube.encoding = THREE.sRGBEncoding;
+
+        // scene.background = textureCube;
+                
       }    
 
       const satMeshes = {};
@@ -240,17 +253,16 @@
 
         const satId = satData.get("catalogNumber").stringValue();
         let satPos = satData.get("position").toObject();
-        const radius = 5, segments = 2, rings = 2, scale = 10;
-        let material = new THREE.MeshBasicMaterial( { color: 0xffffff } )
+        // let material = new THREE.MeshBasicMaterial( { color: 0xffffff } )
         const gmst = satellite.gstime(new Date());
-      const satrec = satellite.twoline2satrec(satData.get("tle").getItem(1).stringValue(), satData.get("tle").getItem(2).stringValue());
+        const satrec = satellite.twoline2satrec(satData.get("tle").getItem(1).stringValue(), satData.get("tle").getItem(2).stringValue());
 
         if(!satMeshes[satId]) {
 
           // const sphere = new THREE.Mesh( new THREE.SphereGeometry(radius, segments, rings), material);
 
           var spriteMap = new THREE.TextureLoader().load( "/assets/js/lib/threejs/textures/sprites/circle.png" );
-          var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff, fog:true } );
+          var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff, fog:false } );
           var sphere = new THREE.Sprite( spriteMaterial );
           
           sphere.cursor = 'pointer';
@@ -271,11 +283,6 @@
             satellitePopoverView.hidePopover(fastTween);
             satellitePopoverView.width(380);
             satellitePopoverView.display("block");
-            satellitePopoverView.node.style.position = "absolute";
-            // satellitePopoverView.left(ev.data.originalEvent.offsetX-(380/2));            
-            // satellitePopoverView.top(ev.data.originalEvent.offsetY-136);      
-            satellitePopoverView.left(10);            
-            satellitePopoverView.top(10);      
 
             
             satellitePopoverContent.getCachedElement("31642d81").text(satData.get("name").stringValue());
@@ -334,7 +341,7 @@
         } else {
           mesh.material.color.setHex(0x00ff00);
         }
-        
+        // mesh.material.color.convertSRGBToLinear();
         const newPropagation = satellite.propagate(satrec, new Date());
         satPos = newPropagation.position;
         if(satPos && satPos.x) {
@@ -369,10 +376,10 @@
 
         }
 
-        // var delta = clock.getDelta();
-        // var radius = 6371;
-        // var tilt = 0.41;
-        // var rotationSpeed = 0.002;        
+        var delta = clock.getDelta();
+        var radius = 6371;
+        var tilt = 0.41;
+        var rotationSpeed = 0.007;        
 
 				// meshPlanet.rotation.y += rotationSpeed * delta;
         // cloudMesh.rotation.y += 1.25 * rotationSpeed * delta;
@@ -381,7 +388,7 @@
         // composer.render();
       };
       
-      swim.nodeRef(`warp://${window.location.host}`, 'aggregation').downlinkMap().laneUri('satelliteList')
+      swim.nodeRef(`warp://127.0.0.1:9001`, 'aggregation').downlinkMap().laneUri('satelliteList')
             // when an new item is added to the list, append it to listItems
             .didUpdate((key, newValue) => {
                 updateSatellite(newValue);
