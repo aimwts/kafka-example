@@ -1,5 +1,5 @@
 {
-	"name": "tleVectorList50",
+	"name": "tleVectorList51",
 	"type": "record",
 	"namespace": "ai.swim.sattrack",
 	"fields": [
@@ -163,6 +163,10 @@
                         },
                         {
                             "name": "countryCode",
+                            "type": "string"
+                        },
+                        {
+                            "name": "launchSiteCode",
                             "type": "string"
                         },
                         {

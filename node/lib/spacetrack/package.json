@@ -1,0 +1,61 @@
+{
+  "_from": "spacetrack@^2.1.3",
+  "_id": "spacetrack@2.1.3",
+  "_inBundle": false,
+  "_integrity": "sha512-qBqyH7qJVyyVd1Bq4kDiTqHafA+OpwV6LKRIfjgkmroKRGmj7J64W3E7RD48wDeIPMwjw39njJKKFdj/8sC3EA==",
+  "_location": "/spacetrack",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "spacetrack@^2.1.3",
+    "name": "spacetrack",
+    "escapedName": "spacetrack",
+    "rawSpec": "^2.1.3",
+    "saveSpec": null,
+    "fetchSpec": "^2.1.3"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/spacetrack/-/spacetrack-2.1.3.tgz",
+  "_shasum": "fa406a627a227798a63f6eff67e263dbfa237516",
+  "_spec": "spacetrack@^2.1.3",
+  "_where": "/mnt/c/development/sat-track/node",
+  "author": {
+    "name": "Ben Elsen",
+    "email": "mail@benelsen.com",
+    "url": "https://benelsen.com"
+  },
+  "bugs": {
+    "url": "https://github.com/benelsen/spacetrack/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "request": "^2.65.0"
+  },
+  "deprecated": false,
+  "description": "node library for the Space-Track.org REST API.",
+  "devDependencies": {
+    "tape": "^4.2.2"
+  },
+  "homepage": "https://github.com/benelsen/spacetrack#readme",
+  "keywords": [
+    "spacetrack",
+    "JFCC",
+    "JSpOC",
+    "satellite",
+    "orbit"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "spacetrack",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benelsen/spacetrack.git"
+  },
+  "scripts": {
+    "test": "tape test/**/*"
+  },
+  "version": "2.1.3"
+}

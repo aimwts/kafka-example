@@ -28,7 +28,7 @@ sattrack: @fabric {
         topic: "fullVectorList",
         recordKey: "tleDataset",
         schemaUrl: "http://localhost:8081",
-        pollInterval: 15000
+        pollInterval: 1000
       }
     }
   }    

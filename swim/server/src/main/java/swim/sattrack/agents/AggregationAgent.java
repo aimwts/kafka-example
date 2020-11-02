@@ -77,6 +77,7 @@ public class AggregationAgent extends AbstractAgent {
     @SwimLane("addSatellite")
     public CommandLane<Value> addSatellite = this.<Value>commandLane()
         .onCommand((Value newValue) -> {
+          // System.out.println("[AggregationAgent] add sat");
           String catId = newValue.get("catalogNumber").stringValue();
           Value currSat = this.satelliteList.get(catId);
           if(currSat == Value.absent()) {
@@ -100,11 +101,11 @@ public class AggregationAgent extends AbstractAgent {
             Record newCount = Record.create(2)
               .slot("name", countryCode)
               .slot("count", countryCount);
-            this.satellitesByCountry.put(countryCode, newCount);
-
-            this.satelliteList.put(catId, newValue);  
+            this.satellitesByCountry.put(countryCode, newCount);           
+            
           }    
-
+          
+          this.satelliteList.put(catId, newValue);  
         });    
          
 }

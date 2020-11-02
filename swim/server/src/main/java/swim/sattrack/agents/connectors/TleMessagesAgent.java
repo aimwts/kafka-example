@@ -18,10 +18,11 @@ import swim.uri.Uri;
  * in server.recon
  */
 public class TleMessagesAgent extends KafkaAgent {
-    Long firstKey;
+    static Long firstKey;
     Value vectorList;
     String catalogNumber;
     String newPath;
+    int satellites;
 
     /**
      * Handle all the records the Kafka Broker found for this agent's topic.
@@ -29,6 +30,8 @@ public class TleMessagesAgent extends KafkaAgent {
     @Override
     protected void processMessages() {
         System.out.println(String.format("[TleMessagesAgent] processMessages %s", this.recordList.size()));
+        int rows = 0;
+        this.satellites = 0;
         while(this.recordList.size() > 0) {
             this.firstKey = this.recordList.getIndex(0).getKey();
             this.vectorList = this.recordList.get(firstKey);
@@ -38,10 +41,13 @@ public class TleMessagesAgent extends KafkaAgent {
                 catalogNumber = vector.get("catalogNumber").stringValue();
                 newPath = String.format("/satellite/%s", catalogNumber);
                 command(Uri.parse(newPath), Uri.parse("updateData"), Value.fromObject(vector));
+                this.satellites++;
             });
 
             this.recordList.remove(firstKey);
+            rows++;
         }        
+        System.out.println(String.format("[TleMessagesAgent] processed %s and %s satellites", rows, this.satellites));
     }
 
 }

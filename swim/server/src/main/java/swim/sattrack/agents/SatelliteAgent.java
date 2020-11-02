@@ -97,24 +97,6 @@ public class SatelliteAgent extends AbstractAgent {
   
     this.tracks.put(timestamp, currentTrackPoint);    
 
-
-    // tracks are based on TLE propagation done by NodeJS prior to sending data into Kafka
-    // Value tracks = stateData.get("tracks");
-    // if(!tracks.equals(Value.absent())) {
-    //   tracks.forEach(trackPoint -> {
-
-    //     if(trackPoint != Value.absent()) {
-    //       Value currentTrackPoint = Record.create(2)
-    //       .slot("lat", trackPoint.get("lat").floatValue(0f))
-    //       .slot("lng", trackPoint.get("long").floatValue(0f))
-    //       .toValue();
-        
-    //       this.tracks.put(trackPoint.get("timestamp").longValue(0l), currentTrackPoint);    
-    //     }
-    //   });
-  
-    // }
-
     // create record of info to send to aggregation agent for this satellite
     Record shortInfo = Record.create()
       .slot("name", stateData.get("name"))
@@ -123,21 +105,26 @@ public class SatelliteAgent extends AbstractAgent {
       .slot("type", stateData.get("type"))
       .slot("orbitalPeriod", stateData.get("orbitalPeriod"))
       .slot("tle", stateData.get("tle"))
+      .slot("file", stateData.get("file"))
       .slot("position", stateData.get("position"))
       .slot("height", stateData.get("height"))
       .slot("latitude", stateData.get("latitude"))
       .slot("longitude", stateData.get("longitude"))
       .slot("countryCode", stateData.get("countryCode"))
       .slot("rcsSize", stateData.get("rcsSize"))
+      .slot("revolutionsAtEpoch", stateData.get("revolutionsAtEpoch"))
       .slot("launchSiteCode", stateData.get("launchSiteCode"));
 
     // send into to aggregation
     try {
+      // System.out.println(this.swimUrl);
       command(Uri.parse(this.swimUrl), Uri.parse("/aggregation"), Uri.parse("addSatellite"), shortInfo); 
     } catch(Exception ex) {
       // TODO: find out why this throws a null pointer sometimes when data first starts coming in
       // the null pointers do not seem to affect anything
       // ex.printStackTrace();
+      System.out.println("error sending to agg");
+      System.out.println(ex);
     }
     
     this.lastUpdate.set(timestamp); // update lastUpdate Value Lane

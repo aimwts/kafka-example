@@ -11,7 +11,7 @@ class IndexPage {
         this.links = {};        
         this.backgroundWorker = null;
         this.fastTween = swim.Transition.duration(300);
-        this.markerTween = swim.Transition.duration(0);
+        this.markerTween = swim.Transition.duration(2000);
         this.userGuid = null;
 
         // LayoutManager related values
@@ -117,7 +117,7 @@ class IndexPage {
         this.map = this.rootSwimElement.getCachedElement("83ca05b4");
 
         this.overlay = this.map.overlays['de2f3c54'];
-
+// console.info(this.overlay)
         this.map.map.dataDirty = true;
         this.map.map.synced = false;
 

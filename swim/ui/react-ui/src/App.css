@@ -1,0 +1,292 @@
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+/* ===============================
+ * Global style
+ * ============================= */
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-size: 15px;
+    font-weight: normal;
+    line-height: 1.4em;
+    font-family: Lato, "Open Sans", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    color: white;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: auto;
+    background-color: #040e19;  
+}
+
+
+.main {   
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+    left: 0px;
+}
+
+.main-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1em;
+    pointer-events: none;
+    color: white;
+}
+
+.main-header .heading {
+    margin: 8px 0 0 0.5em;
+}
+
+.main-header .heading .title {
+    font-size: 1.5rem;
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+.main-header .heading .subtitle {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-top: -5px;
+}
+
+.main-header .form-select {
+    margin: 0.1em 0 0 1em;
+}
+
+.main-header .content-left {
+    display: flex;
+    align-items: center;
+}
+
+.main-header .form-select select {
+    background: transparent;
+    border: 0;
+    font-size: 0.9375rem;
+    color: #fff;
+    padding: 0;
+    margin: 0 0 0 5px;
+    outline: none;
+    border-bottom: 2px solid #44d7b6;
+    pointer-events: all;
+}
+
+.main-header .form-select select option {
+    color: black;
+}
+
+.logoLink {
+    pointer-events: all;
+}
+
+.prism-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: #44d7b6;
+}
+
+.perspectiveViewMain {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+#flatView, #mapElem {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.mainMenu,
+.mainMenuOpen {
+    position: absolute;
+    z-index: 10;
+    top: 120px;
+    left: 0px;
+    width: 40px;
+    /* height: calc(70% - 74px); */
+    backdrop-filter: blur(2px) saturate(20%);
+    transition: all 100ms linear;
+    overflow: hidden;
+    background-color: rgba(12, 17, 18, 0.2);
+    border-radius: 0px 10px 10px 0px;
+    display: grid;
+    border: solid 1px rgba(255, 255, 255, 0.1);
+    /* box-shadow: 0px 0px 3px rgba(255,255,255,0.5); */
+    grid-template-rows: 40px auto;
+}
+
+.mainMenu {
+    width: 40px;
+}
+
+.mainMenuOpen {
+    width: 240px;
+}
+
+.mainMenu select {
+    margin: 10px;
+    background-color: #404040;
+    color: white;
+    border: 0px;
+}
+
+.mainMenu .innerContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.mainMenu .menuIcons {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    margin: 10px;
+}
+
+.mainMenuOpen .menuIcons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    margin: 10px;
+}
+
+.mainMenu h6, .mainMenu .dataFilters, .mainMenu .pageFilters {
+    display: none;
+    width: 240px;
+}
+
+.menuIcon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-align: right;
+    line-height: 36px;
+    border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    position: relative;
+}
+
+.menuIcon svg {
+    position: relative;
+    right: 16px;
+}
+
+.popupMarker {
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    top: 100px;
+    left: 100px;
+    border: solid 0px red;
+    border-radius: 50%;
+    z-index: 5;
+}
+.popupContent {
+    width: 320px;
+}
+.popupHeader {
+    padding: 5px;
+    text-align: left;
+    font-size: 1.2em;
+    border-bottom: 2px solid #44d7b6;
+}
+.popupDataGrid {
+    display: grid;
+    grid-template-columns: 25% 25% 25% 25%;
+    
+}
+
+.popupDataGrid div {
+    text-align: left;
+    padding: 3px 5px;
+    font-size: 12px;
+}
+.popupDataGrid:nth-child(odd) {
+    font-weight: 900;
+    color: blue;
+}
+
+/* LOADER */
+.lds-ellipsis {
+    margin-top: 40%;
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+.lds-ellipsis div {
+    position: absolute;
+    top: 33px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+.lds-ellipsis div:nth-child(1) {
+    left: 8px;
+    animation: lds-ellipsis1 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(2) {
+    left: 8px;
+    animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(3) {
+    left: 32px;
+    animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(4) {
+    left: 56px;
+    animation: lds-ellipsis3 0.6s infinite;
+}
+@keyframes lds-ellipsis1 {
+    0% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+@keyframes lds-ellipsis3 {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0);
+    }
+}
+@keyframes lds-ellipsis2 {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(24px, 0);
+    }
+}

@@ -82,8 +82,9 @@ public abstract class KafkaAgent extends MessageBrokerAgent {
      * handle disconnect
      */
     protected void disconnect() {
+        System.out.println("[KafkaAgent] disconnect");
         this.consumer.close();
-       
+        this.isRunning = false;
     }
 
     /**
@@ -96,7 +97,7 @@ public abstract class KafkaAgent extends MessageBrokerAgent {
         String recordKey = this.agentConfig.get("recordKey").stringValue();
         while (this.isRunning) {
             final ConsumerRecords<Long, GenericRecord> records = this.consumer.poll(this.agentConfig.get("pollInterval").intValue());
-            System.out.println(String.format("[KafkaAgent] check for records %s", records.count()));
+            // System.out.println(String.format("[KafkaAgent] check for records %s", records.count()));
             for (ConsumerRecord<Long, GenericRecord> rec : records) {
 
                 records.forEach(record -> {
@@ -144,8 +145,7 @@ public abstract class KafkaAgent extends MessageBrokerAgent {
 
     @Override
     public void willStop() {
-       
-        this.isRunning = false;
+        this.disconnect();
         super.willStop();
     }
 
